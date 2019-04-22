@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Models;
+using TodoApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace TodoApi.Controllers
@@ -13,15 +14,14 @@ namespace TodoApi.Controllers
     [ApiController]
     public class TodoController : ControllerBase
     {
-        private readonly TodoContext _context;
+        private readonly TodoService _context;
 
-        public TodoController(TodoContext context)
+        public TodoController(TodoService context)
         {
             _context = context;
-            if (_context.TodoItems.Count() == 0)
+            if (_context.Get().Count() == 0)
             {
-                _context.TodoItems.Add(new TodoItem { Name = "Item1" });
-                _context.SaveChanges();
+                _context.Create(new TodoItem { Name = "Item1" });
             }
         }
 
@@ -29,14 +29,14 @@ namespace TodoApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
-            return await _context.TodoItems.ToListAsync();
+            return _context.Get();
         }
 
         //GET: api/Todo/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var todoItem = _context.Get(id);
             if (todoItem == null)
             {
                 return NotFound();
@@ -48,8 +48,7 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem item)
         {
-            _context.TodoItems.Add(item);
-            await _context.SaveChangesAsync();
+            _context.Create(item);
             return CreatedAtAction(nameof(GetTodoItem), new { id = item.Id }, item);
         }
 
@@ -57,14 +56,12 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTodoItem(long id, TodoItem item)
         {
-            if (id != item.Id)
+            if (id != item.IdProp)
             {
                 return BadRequest();
             }
 
-            _context.Entry(item).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
+            _context.Update(id, item);
             return NoContent();
         }
 
@@ -72,15 +69,14 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var todoItem = _context.Get(id);
 
             if (todoItem == null)
             {
                 return NotFound();
             }
 
-            _context.TodoItems.Remove(todoItem);
-            await _context.SaveChangesAsync();
+            _context.Remove(todoItem);
 
             return NoContent();
         } 
