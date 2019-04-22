@@ -21,7 +21,7 @@ namespace TodoApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
-            return "value";
+            return "naaajja:"+id.ToString();
         }
 
         // POST api/values
