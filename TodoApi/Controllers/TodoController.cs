@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using TodoApi.Models;
 using TodoApi.Services;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace TodoApi.Controllers
 {
@@ -19,24 +20,20 @@ namespace TodoApi.Controllers
         public TodoController(TodoService context)
         {
             _context = context;
-            if (_context.Get().Count() == 0)
-            {
-                _context.Create(new TodoItem { Name = "Item1" });
-            }
         }
 
         // GET: api/Todo
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
-            return _context.Get();
+            return await _context.Get();
         }
 
         //GET: api/Todo/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
+        public async Task<ActionResult<TodoItem>> GetTodoItem(string id)
         {
-            var todoItem = _context.Get(id);
+            var todoItem = await _context.Get(id);
             if (todoItem == null)
             {
                 return NotFound();
@@ -54,9 +51,9 @@ namespace TodoApi.Controllers
 
         // PUT: api/Todo/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(long id, TodoItem item)
+        public async Task<IActionResult> PutTodoItem(string id, TodoItem item)
         {
-            if (id != item.IdProp)
+            if (id != item.Id)
             {
                 return BadRequest();
             }
@@ -67,7 +64,7 @@ namespace TodoApi.Controllers
 
         // DELETE: api/todo/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTodoItem(long id)
+        public async Task<IActionResult> DeleteTodoItem(string id)
         {
             var todoItem = _context.Get(id);
 
@@ -76,7 +73,7 @@ namespace TodoApi.Controllers
                 return NotFound();
             }
 
-            _context.Remove(todoItem);
+            _context.Remove(todoItem.Result);
 
             return NoContent();
         } 

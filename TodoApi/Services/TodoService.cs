@@ -3,6 +3,8 @@ using System.Linq;
 using TodoApi.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
+using System.Threading.Tasks;
+using System;
 
 namespace TodoApi.Services
 {
@@ -16,14 +18,14 @@ namespace TodoApi.Services
             _todoItems = database.GetCollection<TodoItem>("TodoList");
         }
 
-        public List<TodoItem> Get()
+        public Task<List<TodoItem>> Get()
         {
-            return _todoItems.Find(TodoItem => true).ToList();
+            return _todoItems.Find(TodoItem => true).ToListAsync();
         }
 
-        public TodoItem Get(long id)
+        public Task<TodoItem> Get(string id)
         {
-            return _todoItems.Find<TodoItem>(todoItem => todoItem.IdProp == id).FirstOrDefault();
+            return _todoItems.Find(todoItem => todoItem.Id == id).SingleAsync();
         }
 
         public TodoItem Create(TodoItem TodoItem)
@@ -32,19 +34,19 @@ namespace TodoApi.Services
             return TodoItem;
         }
 
-        public void Update(long id, TodoItem TodoItemIn)
+        public void Update(string id, TodoItem TodoItemIn)
         {
-            _todoItems.ReplaceOne(todoItem => todoItem.IdProp == id, TodoItemIn);
+            _todoItems.ReplaceOne(todoItem => todoItem.Id == id, TodoItemIn);
         }
 
-        public void Remove(TodoItem bookIn)
+        public void Remove(TodoItem TodoItemIn)
         {
-            _todoItems.DeleteOne(todoItem => todoItem.IdProp == todoItem.IdProp);
+            _todoItems.DeleteOne(todoItem => todoItem.Id == TodoItemIn.Id);
         }
 
-        public void Remove(long id)
+        public void Remove(string id)
         {
-            _todoItems.DeleteOne(TodoItem => TodoItem.IdProp == id);
+            _todoItems.DeleteOne(TodoItem => TodoItem.Id == id);
         }
     }
 }
